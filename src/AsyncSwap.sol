@@ -7,11 +7,11 @@ import "safe/Enum.sol";
 import "safe/ISafe.sol";
 import "swap/Unilike.sol";
 
-/// @title DelegateSwap Safe Module
+/// @title Async Swap Safe Module
 /// @author exponent.cx team
-/// @notice schedule a swap transaction or series of swaps to be executed asynchronously
-/// @dev expected to be used with Gnosis Safe as a Safe module
-contract DelegateSwap is Initializable {
+/// @notice part of async kits module, schedule a swap transaction or series of swaps to be executed asynchronously
+/// @dev expected to be used with Gnosis Safe as a module
+contract AsyncSwap is Initializable {
     string public constant VERSION = "v0.1.0-alpha";
     struct Order {
         address inAddress;
@@ -185,18 +185,19 @@ contract DelegateSwap is Initializable {
         );
 
         // execute Safe module transactions
-        safe.execTransactionFromModule(
+        bool approveSuccess = safe.execTransactionFromModule(
             thisOrder.inAddress,
             0,
             approveCall,
             Enum.Operation.Call
         );
-        safe.execTransactionFromModule(
+        bool swapSuccess = safe.execTransactionFromModule(
             address(uniLike),
             0,
             swapCall,
             Enum.Operation.Call
         );
+        require(approveSuccess && swapSuccess, "failed safe execution");
     }
 
     /// @notice cancel existing order, makes the swap is no longer callable
